@@ -1,5 +1,5 @@
 
-# Nats Streaing Server start
+# Nats Streaming Server start
 
 ```shell
 $ docker pull nats
