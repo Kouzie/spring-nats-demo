@@ -32,6 +32,7 @@ public class NatsSyncMessageHandler {
     private String topic;
     @Value("${nats.stream.queue}")
     private String queue;
+    private MessageHandlerThread thread;
 
     @PostConstruct
     private void init() {
@@ -40,27 +41,33 @@ public class NatsSyncMessageHandler {
         } else {
             subscription = natsConnection.subscribe(topic);
         }
-        handlingMessage(subscription, messageHandler);
+        this.thread = new MessageHandlerThread();
+        thread.start();
     }
 
     @PreDestroy
     private void destroy() throws IOException {
         subscription.unsubscribe();
+        thread.interrupt();
     }
 
-    @Async
-    public void handlingMessage(SyncSubscription subscription, MessageHandler messageHandler) {
-        while (true) {
-            try {
-                Message message = subscription.nextMessage(1000);
-                if (message != null)
-                    messageHandler.onMessage(message);
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (Exception e) {
-                e.printStackTrace();
+
+    public class MessageHandlerThread extends Thread {
+
+        public void run() {
+            System.out.println(this.getName() + ": New Thread is running...");
+            while (true) {
+                try {
+                    Message message = subscription.nextMessage(1000);
+                    if (message != null)
+                        messageHandler.onMessage(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
