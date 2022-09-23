@@ -3,12 +3,15 @@ package com.example.springnatsdemo.nats;
 import io.nats.client.Connection;
 import io.nats.client.Nats;
 import io.nats.client.Options;
+import io.nats.client.ReconnectDelayHandler;
+import io.nats.client.impl.ErrorListenerLoggerImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.IOException;
+import java.time.Duration;
 
 @Slf4j
 @Configuration
@@ -18,12 +21,17 @@ public class NatsConfig {
     private String uri;
 
     @Bean
-    Connection initConnection() throws IOException {
+    Connection initConnection() throws IOException, InterruptedException {
         Options options = new Options.Builder()
-                .errorCb(ex -> log.error("Connection Exception: ", ex))
-                .disconnectedCb(event -> log.error("Channel disconnected: {}", event.getConnection()))
-                .reconnectedCb(event -> log.error("Reconnected to server: {}", event.getConnection()))
+                .server(uri)
+                .userInfo("admin", "password")
+                .errorListener(new ErrorListenerLoggerImpl())
+                .connectionListener((conn, type) -> log.info("connection, type:{}", type.toString()))
+                .reconnectDelayHandler(totalTries -> {
+                    log.info("reconnection tries:{}", totalTries);
+                    return Duration.ofMillis(1000);
+                })
                 .build();
-        return Nats.connect(uri, options);
+        return Nats.connect(options);
     }
 }

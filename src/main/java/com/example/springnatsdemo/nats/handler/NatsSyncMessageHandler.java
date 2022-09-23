@@ -3,12 +3,11 @@ package com.example.springnatsdemo.nats.handler;
 import io.nats.client.Connection;
 import io.nats.client.Message;
 import io.nats.client.MessageHandler;
-import io.nats.client.SyncSubscription;
+import io.nats.client.Subscription;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -26,7 +25,7 @@ public class NatsSyncMessageHandler {
 
     private final Connection natsConnection;
     private final MessageHandler messageHandler;
-    private SyncSubscription subscription;
+    private Subscription subscription;
 
     @Value("${nats.stream.topic}")
     private String topic;
@@ -61,8 +60,6 @@ public class NatsSyncMessageHandler {
                     Message message = subscription.nextMessage(1000);
                     if (message != null)
                         messageHandler.onMessage(message);
-                } catch (IOException e) {
-                    e.printStackTrace();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (Exception e) {
