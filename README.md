@@ -16,7 +16,7 @@ $ docker run --name nats \
  -v $(pwd)/etc/nats:/etc/nats \
  -p 4222:4222 \
  -p 8222:8222 \
- -p 8080:8080
+ -p 8080:8080 \
  nats --http_port 8222 -c /etc/nats/demo.conf
 ```
 
